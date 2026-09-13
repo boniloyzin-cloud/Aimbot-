@@ -1,0 +1,330 @@
+-- ==========================================
+-- DAVI_HUB | Combat Module (50 Player Whitelist)
+-- Telegram Contact: TAVI_KDMH
+-- ==========================================
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- ==========================================
+-- 1. WHITELIST PROTECTION (50 PLAYERS)
+-- ==========================================
+local WhitelistedUsers = {
+    ["DAVI_KDMH"] = true,     -- ឈ្មោះទី ១ (របស់អ្នក)
+    ["BuyerUsername2"] = true,
+    ["BuyerUsername3"] = true,
+    ["BuyerUsername4"] = true,
+    ["BuyerUsername5"] = true,
+    ["BuyerUsername6"] = true,
+    ["BuyerUsername7"] = true,
+    ["BuyerUsername8"] = true,
+    ["BuyerUsername9"] = true,
+    ["BuyerUsername10"] = true,
+    ["BuyerUsername11"] = true,
+    ["BuyerUsername12"] = true,
+    ["BuyerUsername13"] = true,
+    ["BuyerUsername14"] = true,
+    ["BuyerUsername15"] = true,
+    ["BuyerUsername16"] = true,
+    ["BuyerUsername17"] = true,
+    ["BuyerUsername18"] = true,
+    ["BuyerUsername19"] = true,
+    ["BuyerUsername20"] = true,
+    ["BuyerUsername21"] = true,
+    ["BuyerUsername22"] = true,
+    ["BuyerUsername23"] = true,
+    ["BuyerUsername24"] = true,
+    ["BuyerUsername25"] = true,
+    ["BuyerUsername26"] = true,
+    ["BuyerUsername27"] = true,
+    ["BuyerUsername28"] = true,
+    ["BuyerUsername29"] = true,
+    ["BuyerUsername30"] = true,
+    ["BuyerUsername31"] = true,
+    ["BuyerUsername32"] = true,
+    ["BuyerUsername33"] = true,
+    ["BuyerUsername34"] = true,
+    ["BuyerUsername35"] = true,
+    ["BuyerUsername36"] = true,
+    ["BuyerUsername37"] = true,
+    ["BuyerUsername38"] = true,
+    ["BuyerUsername39"] = true,
+    ["BuyerUsername40"] = true,
+    ["BuyerUsername41"] = true,
+    ["BuyerUsername42"] = true,
+    ["BuyerUsername43"] = true,
+    ["BuyerUsername44"] = true,
+    ["BuyerUsername45"] = true,
+    ["BuyerUsername46"] = true,
+    ["BuyerUsername47"] = true,
+    ["BuyerUsername48"] = true,
+    ["BuyerUsername49"] = true,
+    ["BuyerUsername50"] = true,
+}
+
+-- Check if player is whitelisted
+if not WhitelistedUsers[LocalPlayer.Name] then
+    LocalPlayer:Kick("\n[ DAVI HUB SECURITY ]\n\nYou are not whitelisted!\nPlease Telegram: TAVI_KDMH to buy script.")
+    return
+end
+
+-- ==========================================
+-- 2. COMBAT HUB ENGINE
+-- ==========================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DAVI_CombatHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
+
+-- Services
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local Camera = Workspace.CurrentCamera
+
+-- State Flags & Parameters
+local AimbotEnabled = false
+local ESPEnabled = false
+local TracersEnabled = false
+
+local FOVRadius = 150
+local Smoothness = 0.2
+local TargetPart = "Head"
+
+-- FOV Circle Visual
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 1.5
+FOVCircle.Color = Color3.fromRGB(0, 255, 150)
+FOVCircle.Filled = false
+FOVCircle.Transparency = 0.8
+FOVCircle.Visible = false
+
+-- Dynamic Tracers Container
+local Tracers = {}
+
+-- SHOW / HIDE TOGGLE BUTTON
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Name = "DAVI_Toggle"
+ToggleBtn.Size = UDim2.new(0, 110, 0, 35)
+ToggleBtn.Position = UDim2.new(0.02, 0, 0.4, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+ToggleBtn.Text = "SHOW DAVI"
+ToggleBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
+ToggleBtn.Font = Enum.Font.SourceSansBold
+ToggleBtn.TextSize = 13
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+ToggleBtn.Parent = ScreenGui
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 8)
+ToggleCorner.Parent = ToggleBtn
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Color = Color3.fromRGB(0, 255, 150)
+ToggleStroke.Thickness = 1.5
+ToggleStroke.Parent = ToggleBtn
+
+-- MAIN PANEL
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "DAVI_MainFrame"
+MainFrame.Size = UDim2.new(0, 230, 0, 270)
+MainFrame.Position = UDim2.new(0.02, 0, 0.46, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundTransparency = 1
+Title.Text = "DAVI_HUB | Combat Module"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 14
+Title.Parent = MainFrame
+
+-- UI Helper Function
+local function createButton(name, pos, text, color)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Size = UDim2.new(0.88, 0, 0, 35)
+    btn.Position = pos
+    btn.BackgroundColor3 = color
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 13
+    btn.Parent = MainFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+    return btn
+end
+
+-- Create Controls
+local AimbotBtn = createButton("AimbotBtn", UDim2.new(0.06, 0, 0, 45), "Aimbot: OFF", Color3.fromRGB(40, 40, 50))
+local ESPBtn = createButton("ESPBtn", UDim2.new(0.06, 0, 0, 90), "Player Highlight ESP: OFF", Color3.fromRGB(40, 40, 50))
+local TracerBtn = createButton("TracerBtn", UDim2.new(0.06, 0, 0, 135), "Snap Tracers: OFF", Color3.fromRGB(40, 40, 50))
+local TargetPartBtn = createButton("TargetPartBtn", UDim2.new(0.06, 0, 0, 180), "Target Part: Head", Color3.fromRGB(60, 40, 100))
+local LeaveBtn = createButton("LeaveBtn", UDim2.new(0.06, 0, 0, 225), "⚡ FAST LEAVE", Color3.fromRGB(180, 40, 40))
+
+-- Show / Hide Switch Logic
+ToggleBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+    if MainFrame.Visible then
+        ToggleBtn.Text = "HIDE DAVI"
+        ToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+        ToggleStroke.Color = Color3.fromRGB(255, 80, 80)
+    else
+        ToggleBtn.Text = "SHOW DAVI"
+        ToggleBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
+        ToggleStroke.Color = Color3.fromRGB(0, 255, 150)
+    end
+end)
+
+-- Feature Toggles
+AimbotBtn.MouseButton1Click:Connect(function()
+    AimbotEnabled = not AimbotEnabled
+    FOVCircle.Visible = AimbotEnabled
+    AimbotBtn.Text = "Aimbot: " .. (AimbotEnabled and "ON" or "OFF")
+    AimbotBtn.BackgroundColor3 = AimbotEnabled and Color3.fromRGB(0, 150, 100) or Color3.fromRGB(40, 40, 50)
+end)
+
+ESPBtn.MouseButton1Click:Connect(function()
+    ESPEnabled = not ESPEnabled
+    ESPBtn.Text = "Player Highlight ESP: " .. (ESPEnabled and "ON" or "OFF")
+    ESPBtn.BackgroundColor3 = ESPEnabled and Color3.fromRGB(0, 150, 100) or Color3.fromRGB(40, 40, 50)
+end)
+
+TracerBtn.MouseButton1Click:Connect(function()
+    TracersEnabled = not TracersEnabled
+    TracerBtn.Text = "Snap Tracers: " .. (TracersEnabled and "ON" or "OFF")
+    TracerBtn.BackgroundColor3 = TracersEnabled and Color3.fromRGB(0, 150, 100) or Color3.fromRGB(40, 40, 50)
+    if not TracersEnabled then
+        for _, tracer in pairs(Tracers) do tracer.Visible = false end
+    end
+end)
+
+TargetPartBtn.MouseButton1Click:Connect(function()
+    if TargetPart == "Head" then
+        TargetPart = "HumanoidRootPart"
+        TargetPartBtn.Text = "Target Part: Torso"
+    else
+        TargetPart = "Head"
+        TargetPartBtn.Text = "Target Part: Head"
+    end
+end)
+
+LeaveBtn.MouseButton1Click:Connect(function()
+    LocalPlayer:Kick("\n[DAVI_HUB]\nFast Leave Executed.")
+    task.wait(0.05)
+    game:Shutdown()
+end)
+
+-- Helper: Get Closest Target to Center Screen within FOV
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = FOVRadius
+    local mousePos = UserInputService:GetMouseLocation()
+
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild(TargetPart) and plr.Character:FindFirstChildOfClass("Humanoid") then
+            local humanoid = plr.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid.Health > 0 then
+                local part = plr.Character[TargetPart]
+                local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+                if onScreen then
+                    local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                    if dist < shortestDistance then
+                        shortestDistance = dist
+                        closestPlayer = part
+                    end
+                end
+            end
+        end
+    end
+    return closestPlayer
+end
+
+-- Aimbot & FOV Loop
+RunService.RenderStepped:Connect(function()
+    local mousePos = UserInputService:GetMouseLocation()
+    FOVCircle.Position = mousePos
+    FOVCircle.Radius = FOVRadius
+
+    if AimbotEnabled and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local target = getClosestPlayer()
+        if target then
+            local targetPos = Camera:WorldToViewportPoint(target.Position)
+            local currentMouse = UserInputService:GetMouseLocation()
+            local moveVector = (Vector2.new(targetPos.X, targetPos.Y) - currentMouse) * Smoothness
+            
+            mousemoverel(moveVector.X, moveVector.Y)
+        end
+    end
+end)
+
+-- ESP & Tracers Rendering Engine
+task.spawn(function()
+    while task.wait(0.1) do
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character then
+                -- Chams Highlight ESP
+                local highlight = plr.Character:FindFirstChild("DAVI_ESP_Highlight")
+                if ESPEnabled then
+                    if not highlight then
+                        highlight = Instance.new("Highlight")
+                        highlight.Name = "DAVI_ESP_Highlight"
+                        highlight.FillColor = Color3.fromRGB(255, 50, 50)
+                        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                        highlight.FillTransparency = 0.4
+                        highlight.Parent = plr.Character
+                    end
+                else
+                    if highlight then highlight:Destroy() end
+                end
+
+                -- Line Tracers
+                if TracersEnabled and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    if not Tracers[plr] then
+                        local line = Drawing.new("Line")
+                        line.Thickness = 1.5
+                        line.Color = Color3.fromRGB(0, 255, 150)
+                        Tracers[plr] = line
+                    end
+                    
+                    local line = Tracers[plr]
+                    local hrp = plr.Character.HumanoidRootPart
+                    local screenPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                    
+                    if onScreen then
+                        line.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                        line.To = Vector2.new(screenPos.X, screenPos.Y)
+                        line.Visible = true
+                    else
+                        line.Visible = false
+                    end
+                else
+                    if Tracers[plr] then
+                        Tracers[plr].Visible = false
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- Cleanup when players leave
+Players.PlayerRemoving:Connect(function(plr)
+    if Tracers[plr] then
+        Tracers[plr]:Remove()
+        Tracers[plr] = nil
+    end
+end)
